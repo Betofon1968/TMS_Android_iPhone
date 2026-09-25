@@ -1,0 +1,16 @@
+{
+  "name": "TMS Driver",
+  "short_name": "TMS Driver",
+  "description": "Stops, check calls, and BOL/POD photos for drivers.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e1a2f",
+  "theme_color": "#0e1a2f",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

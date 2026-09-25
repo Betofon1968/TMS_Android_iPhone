@@ -1,0 +1,26 @@
+{
+  "name": "tms-driver-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "TMS Truck driver app: installable phone web app for drivers.",
+  "scripts": {
+    "dev": "vite",
+    "dev:phone": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.1"
+  }
+}
