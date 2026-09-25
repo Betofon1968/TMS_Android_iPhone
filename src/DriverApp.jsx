@@ -235,7 +235,7 @@ function DispatchScreen({ dispatch, busy, onBack, showBack, onAction, onPhoto, o
         )}
         <div className="d-title-row">
           <strong>{dispatch.number}</strong>
-          <span className="d-muted">{dispatch.truck}</span>
+          <span className="d-muted">{[dispatch.truck, dispatch.trailer].filter(Boolean).join(' · ')}</span>
           <span className={`d-status d-status-${dispatch.status.replace(' ', '')}`}>{dispatch.status}</span>
         </div>
         <div className="d-progress">
@@ -535,7 +535,7 @@ export default function DriverApp() {
                     {[first?.city, first?.state].filter(Boolean).join(', ')} → {[last?.city, last?.state].filter(Boolean).join(', ')}
                   </div>
                   <div className="d-muted">
-                    {d.stops.length} stops · {d.truck} · starts {date(first?.date)}
+                    {[`${d.stops.length} stops`, d.truck, d.trailer, `starts ${date(first?.date)}`].filter(Boolean).join(' · ')}
                   </div>
                 </button>
               );
