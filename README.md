@@ -6,7 +6,7 @@ It talks to the TMS server from the **TMS** repository, which holds all the data
 
 ## What drivers can do
 
-* Sign in with their **phone number and PIN** (the office sets the PIN on Trucks & Drivers in the TMS).
+* Sign in with their **phone number and PIN** (the office sets the PIN on the Drivers page in the TMS).
 * See **their own dispatches**: current stop large on screen, address, appointment window, load number, PO, pieces, weight, and dock instructions.
 * Tap **Arrived**, then **Loaded & departed** or **Delivered & departed** at each stop, in order. The time and GPS location go to the office.
 * Send a **check call** (note plus location) to the office.
@@ -26,7 +26,7 @@ You need Node.js 20.19 or newer and the TMS repository running.
    npm install
    npm run dev
    ```
-3. Open http://localhost:5174. Set a PIN for a driver in the office app first (Trucks & Drivers, Drivers tab).
+3. Open http://localhost:5174. Set a PIN for a driver in the office app first (Drivers page).
 
 `npm test` runs the tests. `npm run build` makes the files to publish in `dist/`.
 
@@ -39,7 +39,7 @@ The app is a static website, so hosting is simple and inexpensive. With Render:
 3. When asked for **VITE_TMS_API_URL**, enter the TMS address from step 1 (no slash at the end).
 4. Deploy. Render gives the app its own address, for example `https://tms-driver.onrender.com`.
 5. In Render, open the **TMS** web service, go to **Environment**, set **DRIVER_APP_URL** to the driver app address from step 4, and save. The TMS only accepts the driver app from that address.
-6. In the office app, Trucks & Drivers now shows this link to send to drivers.
+6. In the office app, the Drivers page now shows this link to send to drivers.
 
 Any other static host works too (Netlify, Cloudflare Pages, Vercel): build with `npm run build`, publish the `dist` folder, set `VITE_TMS_API_URL` at build time, and send every page to `index.html`.
 
