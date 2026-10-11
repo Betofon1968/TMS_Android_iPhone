@@ -486,3 +486,24 @@ h2 {
   border-radius: 8px;
   background: #e4e9f1;
 }
+.d-update {
+  display: block;
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #b9cdf6;
+  background: #e8efff;
+  color: #1d4fb8;
+  text-align: left;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.d-version {
+  text-align: center;
+  color: #8a94a6;
+  font-size: 12px;
+  padding: 16px 0 24px;
+}
+.d-login .d-version {
+  padding: 0 0 8px;
+}
