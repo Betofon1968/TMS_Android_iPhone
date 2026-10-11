@@ -6,6 +6,33 @@ import { clearQueue, enqueue, flushQueue, readQueue } from './queue.js';
 import { applyLocally } from './offline.js';
 
 const REFRESH_MS = 30000;
+const VERSION_CHECK_MS = 5 * 60 * 1000;
+
+// A newer version of the app on the server, or ''. Updates waiting to send are kept on the
+// phone, so reloading is always safe.
+function useNewVersion() {
+  const [next, setNext] = useState('');
+  useEffect(() => {
+    const check = async () => {
+      if (document.hidden) return;
+      try {
+        const res = await fetch('/version.json', { cache: 'no-store' });
+        const { version } = await res.json();
+        if (version && version !== __APP_VERSION__) setNext(version);
+      } catch {
+        // No signal: check again later.
+      }
+    };
+    check();
+    const timer = setInterval(check, VERSION_CHECK_MS);
+    document.addEventListener('visibilitychange', check);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', check);
+    };
+  }, []);
+  return next;
+}
 
 // Best effort GPS: resolves with a position, or with nothing if it is off or slow.
 function getPosition() {
@@ -54,6 +81,7 @@ function Login({ onDone }) {
     <form className="d-login" onSubmit={submit}>
       <div className="d-logo">🚚</div>
       <h1>TMS Driver</h1>
+      <div className="d-version">v{__APP_VERSION__}</div>
       <label>
         Phone number
         <input
@@ -335,6 +363,7 @@ export default function DriverApp() {
   const [message, setMessage] = useState(null);
   const [queued, setQueued] = useState(readQueue().length);
   const [online, setOnline] = useState(navigator.onLine);
+  const newVersion = useNewVersion();
   const [checkCall, setCheckCall] = useState(null);
   const viewRef = useRef(null);
 
@@ -493,6 +522,11 @@ export default function DriverApp() {
         </div>
       </header>
 
+      {newVersion && (
+        <button type="button" className="d-banner d-update" onClick={() => window.location.reload()}>
+          A new version of the app is ready ({newVersion}). Tap here to update.
+        </button>
+      )}
       {(!online || queued > 0) && (
         <div className="d-banner">
           {!online ? 'Offline. ' : ''}
@@ -582,6 +616,7 @@ export default function DriverApp() {
         </Sheet>
       )}
 
+      <div className="d-version">TMS Driver v{__APP_VERSION__}</div>
       {busy && <div className="d-busy">Sending…</div>}
       {message && <div className={`d-toast d-toast-${message.kind}`}>{message.text}</div>}
     </div>

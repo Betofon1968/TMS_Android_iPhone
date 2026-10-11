@@ -69,3 +69,11 @@ src/lib/images.js   shrinks photos before upload
 public/             icons, app manifest, and the offline cache (sw.js)
 render.yaml         hosting setup for Render
 ```
+
+## Versions
+
+The version number lives in `package.json` (`"version"`) and nowhere else. It shows on the sign in screen and at the bottom of the app. The build writes `/version.json` (`{ name, version, commit }`); the NEC Suite reads it for its Apps page and Activity log, and an open app shows "A new version of the app is ready. Tap here to update." Updates waiting to send stay on the phone, so updating is always safe.
+
+Every change that goes live gets a new version, MAJOR.MINOR.PATCH: PATCH (1.0.1) for fixes and small changes, MINOR (1.1.0) for new features, MAJOR (2.0.0) for changes that need the TMS server updated at the same time.
+
+To change it: `npm version 1.0.1 --no-git-tag-version`, add the entry to `CHANGELOG.md`, and start the commit message and pull request title with the version (`v1.0.1: …`).
