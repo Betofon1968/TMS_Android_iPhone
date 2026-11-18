@@ -33,7 +33,8 @@ function headers(extra = {}) {
   return { 'x-tms': '1', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
 }
 
-async function request(method, path, body) {
+// timeoutMs: give up after this long (reported like no signal). Without it the phone decides.
+async function request(method, path, body, { timeoutMs } = {}) {
   let res;
   try {
     res = await fetch(BASE + path, {
@@ -41,6 +42,7 @@ async function request(method, path, body) {
       credentials: 'omit',
       headers: headers(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      ...(timeoutMs && AbortSignal.timeout ? { signal: AbortSignal.timeout(timeoutMs) } : {}),
     });
   } catch {
     throw new ApiError(0, null);
@@ -52,7 +54,7 @@ async function request(method, path, body) {
 
 export const api = {
   get: (path) => request('GET', path),
-  post: (path, body = {}) => request('POST', path, body),
+  post: (path, body = {}, options) => request('POST', path, body, options),
 };
 
 // Photos need the sign in token too, so they are downloaded and shown from memory.
