@@ -68,6 +68,60 @@ describe('offline queue', () => {
     expect(out.rejected).toEqual(['Arrival was already recorded.']);
   });
 
+  it('keeps an update when the office server has trouble, and gives up after 30 minutes', async () => {
+    const { enqueue, flushQueue, readQueue } = await import('./queue.js');
+    enqueue({ url: '/api/driver/arrive', body: { index: 0 } });
+    enqueue({ url: '/api/driver/depart', body: { index: 0 } });
+    fetch.mockResolvedValue(json(500, { error: 'Something went wrong on the server.' }));
+    const down = await flushQueue();
+    expect(down).toMatchObject({ remaining: 2, rejected: [] });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect((await flushQueue()).remaining).toBe(2);
+    // The server is back: both go out, in order.
+    fetch.mockReset().mockResolvedValue(json(200, { dispatches: [] }));
+    expect((await flushQueue()).remaining).toBe(0);
+    expect(fetch.mock.calls.map((c) => c[0])).toEqual(['/api/driver/arrive', '/api/driver/depart']);
+
+    // An update the server can never take does not hold the others back for good.
+    enqueue({ url: '/api/driver/arrive', body: { index: 1 } });
+    enqueue({ url: '/api/driver/checkcall', body: { note: 'behind it' } });
+    fetch.mockReset().mockResolvedValueOnce(json(500, { error: 'Something went wrong on the server.' }));
+    await flushQueue();
+    vi.useFakeTimers({ now: Date.now() + 31 * 60 * 1000 });
+    fetch.mockResolvedValueOnce(json(500, { error: 'Something went wrong on the server.' })).mockResolvedValueOnce(json(200, { dispatches: [] }));
+    const late = await flushQueue();
+    vi.useRealTimers();
+    expect(late).toMatchObject({ remaining: 0, rejected: ['Something went wrong on the server.'] });
+    expect(readQueue()).toEqual([]);
+  });
+
+  it('sends an update tapped while others are being sent', async () => {
+    const { enqueue, flushQueue, readQueue } = await import('./queue.js');
+    enqueue({ url: '/api/driver/checkcall', body: { note: 'saved with no signal' } });
+    let answer;
+    fetch.mockReturnValueOnce(new Promise((resolve) => (answer = resolve))).mockResolvedValue(json(200, { dispatches: [] }));
+    const run = flushQueue();
+    // The driver taps Arrived while the check call is on its way.
+    enqueue({ url: '/api/driver/arrive', body: { index: 1 } });
+    answer(json(200, { dispatches: [] }));
+    expect((await run).remaining).toBe(0);
+    expect(fetch.mock.calls.map((c) => c[0])).toEqual(['/api/driver/checkcall', '/api/driver/arrive']);
+    expect(readQueue()).toEqual([]);
+  });
+
+  it('sends each update once when two runs start together', async () => {
+    const { enqueue, flushQueue } = await import('./queue.js');
+    enqueue({ url: '/api/driver/checkcall', body: { note: 'once' } });
+    fetch.mockResolvedValue(json(200, { dispatches: [] }));
+    const [a, b] = await Promise.all([flushQueue(), flushQueue()]);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(a).toBe(b);
+    // A later run starts fresh.
+    enqueue({ url: '/api/driver/checkcall', body: { note: 'again' } });
+    await flushQueue();
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it('shows a saved stop update on screen right away', async () => {
     const { applyLocally } = await import('./offline.js');
     const view = { dispatches: [{ id: 'd1', status: 'Dispatched', stops: [{ index: 0 }, { index: 1 }], nextIndex: 0 }] };

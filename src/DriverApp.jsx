@@ -445,6 +445,8 @@ export default function DriverApp() {
         setQueued(enqueue({ url, body: payload }).length);
         show(applyLocally(viewRef.current, url, payload));
         say('No signal. Saved on your phone and will send automatically.', 'warn');
+        // With service, the waiting updates go out now instead of at the next check.
+        if (navigator.onLine) flush();
       } else if (err instanceof ApiError && err.status === 401) signedOut();
       else {
         if (err.body?.dispatches) show(err.body);
