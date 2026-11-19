@@ -507,3 +507,32 @@ h2 {
 .d-login .d-version {
   padding: 0 0 8px;
 }
+
+/* The numbers the dock asks for (Release #, Delivery PO #, Appt #), big enough to read out at the window. */
+.d-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+.d-numbers div {
+  flex: 1 1 120px;
+  background: #eeecfe;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.d-numbers dt {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4b3fc4;
+}
+.d-numbers dd {
+  margin: 2px 0 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  word-break: break-all;
+}
+.d-temp {
+  font-weight: 700;
+}
