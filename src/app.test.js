@@ -132,4 +132,45 @@ describe('offline queue', () => {
     expect(departed.dispatches[0].nextIndex).toBe(1);
     expect(applyLocally(view, '/api/driver/checkcall', { dispatchId: 'd1' })).toBe(view);
   });
+
+  it('shows the seal given when leaving a pickup right away', async () => {
+    const { applyLocally } = await import('./offline.js');
+    const view = { dispatches: [{ id: 'd1', status: 'In Transit', stops: [{ index: 0, arrivedAt: 'T1' }, { index: 1 }], nextIndex: 0 }] };
+    const departed = applyLocally(view, '/api/driver/depart', { dispatchId: 'd1', index: 0, ts: 'T2', seal: 'SL 558210' });
+    expect(departed.dispatches[0].stops[0]).toMatchObject({ departedAt: 'T2', sealNumber: 'SL 558210' });
+    expect(departed.dispatches[0].stops[1].sealNumber).toBeUndefined();
+  });
+});
+
+describe('smaller photos', () => {
+  const urlOf = (bytes) => `data:image/jpeg;base64,${'A'.repeat(Math.ceil(bytes / 3) * 4)}`;
+
+  it('measures the file a data URL holds', async () => {
+    const { bytesOf } = await import('./lib/images.js');
+    expect(bytesOf('data:image/jpeg;base64,AAAA')).toBe(3);
+    expect(bytesOf('data:image/jpeg;base64,AAA=')).toBe(2);
+    expect(bytesOf('data:image/jpeg;base64,AA==')).toBe(1);
+  });
+
+  it('steps down until the photo is small enough, and stops there', async () => {
+    const { smallest, TARGET_BYTES } = await import('./lib/images.js');
+    const sizes = { '1600/0.7': 900e3, '1600/0.6': 600e3, '1400/0.6': 340e3, '1400/0.5': 250e3, '1200/0.5': 200e3 };
+    const tried = [];
+    const out = smallest(urlOf(4e6), (side, q) => {
+      tried.push(`${side}/${q}`);
+      return urlOf(sizes[`${side}/${q}`]);
+    });
+    expect(tried).toEqual(['1600/0.7', '1600/0.6', '1400/0.6']);
+    expect(out).toBe(urlOf(340e3));
+    expect(340e3).toBeLessThan(TARGET_BYTES);
+  });
+
+  it('keeps the original when it is already smaller, and the smallest when none reaches the target', async () => {
+    const { smallest } = await import('./lib/images.js');
+    expect(smallest(urlOf(120e3), () => urlOf(200e3))).toBe(urlOf(120e3));
+    let n = 0;
+    const out = smallest(urlOf(5e6), () => urlOf([1.9e6, 1.5e6, 1.2e6, 900e3, 700e3][n++]));
+    expect(n).toBe(5);
+    expect(out).toBe(urlOf(700e3));
+  });
 });

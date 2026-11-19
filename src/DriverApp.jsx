@@ -10,6 +10,7 @@ const stopNumbers = (stop) =>
   [
     stop.bolNumber && ['BOL #', stop.bolNumber],
     stop.releaseNumber && ['Release #', stop.releaseNumber],
+    stop.sealNumber && ['Seal #', stop.sealNumber],
     stop.deliveryPo && ['Delivery PO #', stop.deliveryPo],
     stop.apptNumber && ['Appt #', stop.apptNumber],
   ].filter(Boolean);
@@ -310,7 +311,7 @@ function DispatchScreen({ dispatch, busy, onBack, showBack, onAction, onPhoto, o
           dispatch={dispatch}
           busy={busy}
           onArrive={() => setConfirm({ kind: 'arrive', stop: next })}
-          onDepart={() => setConfirm({ kind: 'depart', stop: next })}
+          onDepart={() => setConfirm({ kind: 'depart', stop: next, seal: next.sealNumber || '' })}
           onPhoto={(file, kind) => onPhoto(dispatch, next, file, kind)}
         />
       ) : (
@@ -339,7 +340,12 @@ function DispatchScreen({ dispatch, busy, onBack, showBack, onAction, onPhoto, o
                 <div className="d-muted">
                   {[s.city, s.state].filter(Boolean).join(', ')} · {date(s.date)} {s.timeFrom}
                 </div>
-                {s.departedAt && <div className="d-muted">Departed {dateTime(s.departedAt)}</div>}
+                {s.departedAt && (
+                  <div className="d-muted">
+                    Departed {dateTime(s.departedAt)}
+                    {s.sealNumber && ` · Seal ${s.sealNumber}`}
+                  </div>
+                )}
               </div>
             </li>
           ))}
@@ -366,14 +372,27 @@ function DispatchScreen({ dispatch, busy, onBack, showBack, onAction, onPhoto, o
             {confirm.kind === 'arrive' ? 'Arrived at ' : confirm.stop.type === 'pickup' ? 'Loaded and leaving ' : 'Delivered and leaving '}
             <strong>{confirm.stop.name || confirm.stop.city}</strong>?
           </p>
+          {confirm.kind === 'depart' && confirm.stop.type === 'pickup' && (
+            <label>
+              Seal # on the trailer
+              <input
+                value={confirm.seal}
+                onChange={(e) => setConfirm((c) => ({ ...c, seal: e.target.value.toUpperCase() }))}
+                autoCapitalize="characters"
+                autoComplete="off"
+                maxLength={40}
+                placeholder="Leave empty if there is no seal"
+              />
+            </label>
+          )}
           <p className="d-muted">The time and your location are sent to the office.</p>
           <button
             type="button"
             className="d-btn d-btn-primary d-btn-big"
             onClick={() => {
-              const { kind, stop } = confirm;
+              const { kind, stop, seal } = confirm;
               setConfirm(null);
-              onAction(kind, dispatch, stop);
+              onAction(kind, dispatch, stop, kind === 'depart' && stop.type === 'pickup' ? seal : '');
             }}
           >
             Yes, confirm
@@ -489,10 +508,10 @@ export default function DriverApp() {
     }
   };
 
-  const onAction = (kind, dispatch, stop) =>
+  const onAction = (kind, dispatch, stop, seal = '') =>
     send(
       `/api/driver/${kind}`,
-      { dispatchId: dispatch.id, index: stop.index },
+      { dispatchId: dispatch.id, index: stop.index, ...(seal.trim() ? { seal: seal.trim() } : {}) },
       kind === 'arrive' ? `Arrival at ${stop.name || stop.city} sent` : `Departure from ${stop.name || stop.city} sent`,
     );
 

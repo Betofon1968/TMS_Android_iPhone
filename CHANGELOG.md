@@ -2,6 +2,11 @@
 
 Every change that goes live gets a new version (see "Versions" in README.md).
 
+## 1.3.0 (2026-11-19)
+
+* **Seal # when leaving a pickup:** the departure screen of a pickup has a **Seal #** box (filled in already when the office entered it). The seal goes to the office with the departure, also without signal, and shows with the BOL # at the top of the pickup. Needs TMS Truck 1.4.0.
+* **Smaller BOL and POD photos:** a photo is made smaller step by step until it is about 350 KB or less, while the paper stays easy to read (at least 1200 pixels on its long side). A 4 to 5 MB phone photo now sends as about 200 to 300 KB, 20% to 50% smaller than before (the more detail in the photo, the more it saves), so it goes through faster on a weak signal and takes less space.
+
 ## 1.2.0 (2026-11-19)
 
 * **BOL # at the pickup:** the bill of lading number shows in large type with the other numbers at the top of a pickup (from TMS Truck 1.3.0).

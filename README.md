@@ -10,7 +10,8 @@ It talks to the TMS server from the **TMS** repository, which holds all the data
 * See **their own dispatches**: current stop large on screen, address, appointment window, load number, PO, pieces, weight, and dock instructions.
 * Tap **Arrived**, then **Loaded & departed** or **Delivered & departed** at each stop, in order. The time and GPS location go to the office.
 * Send a **check call** (note plus location) to the office.
-* Take **BOL and POD photos**; they are made smaller before sending so they upload on a weak signal.
+* Take **BOL and POD photos**; they are made smaller (about 350 KB or less, still easy to read) before sending so they upload on a weak signal.
+* Give the **seal #** when leaving a pickup.
 * **Call** the stop contact or **navigate** there with one tap.
 * Keep working **without signal**: stop updates and check calls are saved on the phone and sent automatically, with the time they were tapped, when service comes back. Photos need a signal.
 

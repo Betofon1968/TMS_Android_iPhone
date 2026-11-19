@@ -7,7 +7,9 @@ export function applyLocally(view, url, body) {
     ...view,
     dispatches: view.dispatches.map((d) => {
       if (d.id !== body.dispatchId) return d;
-      const stops = d.stops.map((s) => (s.index === body.index ? { ...s, [field]: body.ts } : s));
+      // A seal given when leaving a pickup shows on the stop right away too.
+      const seal = field === 'departedAt' && body.seal ? { sealNumber: body.seal } : {};
+      const stops = d.stops.map((s) => (s.index === body.index ? { ...s, [field]: body.ts, ...seal } : s));
       return { ...d, stops, nextIndex: stops.findIndex((s) => !s.departedAt), status: 'In Transit' };
     }),
   };
