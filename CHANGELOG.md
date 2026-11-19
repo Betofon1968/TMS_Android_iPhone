@@ -2,6 +2,13 @@
 
 Every change that goes live gets a new version (see "Versions" in README.md).
 
+## 1.1.0 (2026-11-19)
+
+* **The dock's numbers on each stop:** the **Release #** to pick up, the receiver's **Delivery PO #** and the **Appointment #** show in large type at the top of the stop, easy to read out at the shipping or receiving window.
+* **Reefer details:** the temperature and whether the product is fresh, frozen or dry, and a **Pallet exchange** tag when the customer asks for one.
+* **The customer's numbers:** the load's **PO #** and **Order #** next to the load number.
+* Needs TMS Truck 1.2.0 for the new numbers; with an older TMS nothing changes.
+
 ## 1.0.1 (2026-11-18)
 
 Fixes to the updates saved on the phone while there is no signal:

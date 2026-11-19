@@ -5,6 +5,15 @@ import { date, dateTime } from './lib/format.js';
 import { clearQueue, enqueue, flushQueue, readQueue } from './queue.js';
 import { applyLocally } from './offline.js';
 
+// The numbers the dock asks for at this stop, from the office (TMS 1.2.0 and later).
+const stopNumbers = (stop) =>
+  [
+    stop.releaseNumber && ['Release #', stop.releaseNumber],
+    stop.deliveryPo && ['Delivery PO #', stop.deliveryPo],
+    stop.apptNumber && ['Appt #', stop.apptNumber],
+  ].filter(Boolean);
+const PRODUCT = { fresh: 'Fresh', frozen: 'Frozen', dry: 'Dry' };
+
 const REFRESH_MS = 30000;
 const VERSION_CHECK_MS = 5 * 60 * 1000;
 
@@ -196,9 +205,31 @@ function StopCard({ stop, dispatch, busy, onArrive, onDepart, onPhoto }) {
         </span>
         {stop.apptRequired && <span className="d-tag d-tag-warn">APPT REQUIRED</span>}
       </div>
+      {stopNumbers(stop).length > 0 && (
+        <dl className="d-numbers">
+          {stopNumbers(stop).map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
       {stop.notes && <div className="d-note">{stop.notes}</div>}
+      {(stop.load.temperature || stop.load.productType || stop.load.palletExchange) && (
+        <div className="d-row">
+          {(stop.load.temperature || stop.load.productType) && (
+            <span className="d-temp">
+              🌡 {[stop.load.temperature && `${stop.load.temperature} °F`, PRODUCT[stop.load.productType]].filter(Boolean).join(' · ')}
+            </span>
+          )}
+          {stop.load.palletExchange && <span className="d-tag d-tag-warn">PALLET EXCHANGE</span>}
+        </div>
+      )}
       <div className="d-load">
         <strong>{stop.load.number}</strong>
+        {stop.load.poNumber && <span> · PO # {stop.load.poNumber}</span>}
+        {stop.load.orderNumber && <span> · Order # {stop.load.orderNumber}</span>}
         {stop.load.reference && <span> · Ref {stop.load.reference}</span>}
         {stop.load.commodity && <span> · {stop.load.commodity}</span>}
         <div className="d-muted">
