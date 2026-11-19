@@ -2,6 +2,10 @@
 
 Every change that goes live gets a new version (see "Versions" in README.md).
 
+## 1.2.0 (2026-11-19)
+
+* **BOL # at the pickup:** the bill of lading number shows in large type with the other numbers at the top of a pickup (from TMS Truck 1.3.0).
+
 ## 1.1.0 (2026-11-19)
 
 * **The dock's numbers on each stop:** the **Release #** to pick up, the receiver's **Delivery PO #** and the **Appointment #** show in large type at the top of the stop, easy to read out at the shipping or receiving window.
