@@ -1,7 +1,7 @@
 {
   "name": "tms-driver-app",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "TMS Truck driver app: installable phone web app for drivers.",
   "scripts": {

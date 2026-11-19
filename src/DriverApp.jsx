@@ -5,9 +5,10 @@ import { date, dateTime } from './lib/format.js';
 import { clearQueue, enqueue, flushQueue, readQueue } from './queue.js';
 import { applyLocally } from './offline.js';
 
-// The numbers the dock asks for at this stop, from the office (TMS 1.2.0 and later).
+// The numbers the dock asks for at this stop, from the office (TMS 1.2.0 and later; BOL # from 1.3.0).
 const stopNumbers = (stop) =>
   [
+    stop.bolNumber && ['BOL #', stop.bolNumber],
     stop.releaseNumber && ['Release #', stop.releaseNumber],
     stop.deliveryPo && ['Delivery PO #', stop.deliveryPo],
     stop.apptNumber && ['Appt #', stop.apptNumber],
