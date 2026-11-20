@@ -12,6 +12,7 @@ It talks to the TMS server from the **TMS** repository, which holds all the data
 * Send a **check call** (note plus location) to the office.
 * Take **BOL and POD photos**; they are made smaller (about 350 KB or less, still easy to read) before sending so they upload on a weak signal.
 * Give the **seal #** when leaving a pickup.
+* **Relays:** when one driver picks up and another delivers, each sees only their own leg: where to drop or hook the trailer, or meet the other driver (with a button to call them), and the seal to check at a hook.
 * **Call** the stop contact or **navigate** there with one tap.
 * Keep working **without signal**: stop updates and check calls are saved on the phone and sent automatically, with the time they were tapped, when service comes back. Photos need a signal.
 

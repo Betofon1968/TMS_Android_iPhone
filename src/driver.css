@@ -218,6 +218,18 @@ h2 {
   background: #e3f6ee;
   color: var(--d-green);
 }
+.d-stop.d-drop,
+.d-stop.d-hook {
+  border-top-color: var(--d-amber);
+}
+.d-tag-drop,
+.d-tag-hook {
+  background: #fff3dc;
+  color: var(--d-amber);
+}
+.d-relay {
+  font-weight: 600;
+}
 .d-tag-warn {
   background: #fff3dc;
   color: var(--d-amber);

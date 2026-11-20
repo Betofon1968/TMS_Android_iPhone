@@ -2,6 +2,13 @@
 
 Every change that goes live gets a new version (see "Versions" in README.md).
 
+## 1.4.0 (2026-11-20)
+
+* **Relays** (with TMS Truck 1.6.0): a dispatch split between two drivers shows each driver only their own leg.
+  * The relay stop says what to do: **Drop trailer** or **Hook trailer** at a yard, or **Hand off** or **Take over** when the drivers meet, with the other driver's name and a button to call them when meeting.
+  * At a hook, the seal put on at the pickup is shown, to check it is intact before leaving.
+  * Relay stops have no BOL or POD photo, and a **RELAY** tag shows on the dispatch.
+
 ## 1.3.0 (2026-11-19)
 
 * **Seal # when leaving a pickup:** the departure screen of a pickup has a **Seal #** box (filled in already when the office entered it). The seal goes to the office with the departure, also without signal, and shows with the BOL # at the top of the pickup. Needs TMS Truck 1.4.0.
