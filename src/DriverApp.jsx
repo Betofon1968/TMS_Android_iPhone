@@ -67,7 +67,29 @@ function getPosition() {
 const fullAddress = (s) => [s.address, s.city, [s.state, s.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
 const mapsUrl = (s) => `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddress(s) || s.name)}`;
 const telUrl = (phone) => `tel:${String(phone).replace(/[^\d+]/g, '')}`;
-const stopWord = (s) => (s.type === 'pickup' ? 'Pickup' : 'Delivery');
+// A relay stop is where this driver's leg ends or starts: at a yard (drop or hook the trailer)
+// or at a meeting place (hand off or take over the trailer from the other driver).
+const RELAY_WORDS = { drop: { yard: 'Drop trailer', meet: 'Hand off' }, hook: { yard: 'Hook trailer', meet: 'Take over' } };
+const isRelay = (s) => s.type === 'drop' || s.type === 'hook';
+const stopWord = (s) => (isRelay(s) ? RELAY_WORDS[s.type][s.relay?.mode === 'meet' ? 'meet' : 'yard'] : s.type === 'pickup' ? 'Pickup' : 'Delivery');
+const DEPART_WORDS = {
+  pickup: () => 'Loaded & departed',
+  delivery: () => 'Delivered & departed',
+  drop: (s) => (s.relay?.mode === 'meet' ? 'Handed off & departed' : 'Dropped & departed'),
+  hook: (s) => (s.relay?.mode === 'meet' ? 'Took over & departed' : 'Hooked & departed'),
+};
+const LEAVING_WORDS = {
+  pickup: () => 'Loaded and leaving ',
+  delivery: () => 'Delivered and leaving ',
+  drop: (s) => (s.relay?.mode === 'meet' ? 'Handed off the trailer and leaving ' : 'Dropped the trailer and leaving '),
+  hook: (s) => (s.relay?.mode === 'meet' ? 'Took over the trailer and leaving ' : 'Hooked the trailer and leaving '),
+};
+// What to do at a relay stop, in one line.
+function relayInstruction(s) {
+  const who = s.relay?.partner || (s.relay?.partnerDispatch ? `the driver of ${s.relay.partnerDispatch}` : 'the other driver');
+  if (s.type === 'drop') return s.relay?.mode === 'meet' ? `Meet ${who} here and hand over the trailer.` : `Drop the trailer here. ${who} hooks it next.`;
+  return s.relay?.mode === 'meet' ? `Meet ${who} here and take over the trailer.` : `Hook the trailer ${who} dropped here.`;
+}
 
 function Login({ onDone }) {
   const [phone, setPhone] = useState('');
@@ -189,6 +211,7 @@ function PhotoButton({ label, onFile, disabled }) {
 function StopCard({ stop, dispatch, busy, onArrive, onDepart, onPhoto }) {
   const canAct = ['Dispatched', 'In Transit'].includes(dispatch.status);
   const photoKind = stop.type === 'pickup' ? 'BOL' : 'POD';
+  const relay = isRelay(stop);
   return (
     <section className={`d-card d-stop d-${stop.type}`}>
       <div className="d-stop-head">
@@ -201,12 +224,19 @@ function StopCard({ stop, dispatch, busy, onArrive, onDepart, onPhoto }) {
       <a className="d-address" href={mapsUrl(stop)} target="_blank" rel="noreferrer">
         {fullAddress(stop) || 'No address on file'}
       </a>
-      <div className="d-row">
-        <span>
-          📅 {date(stop.date)} {stop.timeFrom && `${stop.timeFrom} to ${stop.timeTo || ''}`}
-        </span>
-        {stop.apptRequired && <span className="d-tag d-tag-warn">APPT REQUIRED</span>}
-      </div>
+      {relay ? (
+        <div className="d-note d-relay">
+          {relayInstruction(stop)}
+          {stop.type === 'hook' && stop.sealNumber && <div>Check that seal {stop.sealNumber} is intact before leaving.</div>}
+        </div>
+      ) : (
+        <div className="d-row">
+          <span>
+            📅 {date(stop.date)} {stop.timeFrom && `${stop.timeFrom} to ${stop.timeTo || ''}`}
+          </span>
+          {stop.apptRequired && <span className="d-tag d-tag-warn">APPT REQUIRED</span>}
+        </div>
+      )}
       {stopNumbers(stop).length > 0 && (
         <dl className="d-numbers">
           {stopNumbers(stop).map(([label, value]) => (
@@ -263,9 +293,9 @@ function StopCard({ stop, dispatch, busy, onArrive, onDepart, onPhoto }) {
       )}
       {canAct && stop.arrivedAt && !stop.departedAt && (
         <>
-          <PhotoButton label={`${photoKind} photo`} onFile={(f) => onPhoto(f, photoKind)} disabled={busy} />
+          {!relay && <PhotoButton label={`${photoKind} photo`} onFile={(f) => onPhoto(f, photoKind)} disabled={busy} />}
           <button type="button" className="d-btn d-btn-primary d-btn-big" disabled={busy} onClick={onDepart}>
-            {stop.type === 'pickup' ? 'Loaded & departed' : 'Delivered & departed'}
+            {(DEPART_WORDS[stop.type] || DEPART_WORDS.delivery)(stop)}
           </button>
         </>
       )}
@@ -298,6 +328,7 @@ function DispatchScreen({ dispatch, busy, onBack, showBack, onAction, onPhoto, o
           <strong>{dispatch.number}</strong>
           <span className="d-muted">{[dispatch.truck, dispatch.trailer].filter(Boolean).join(' · ')}</span>
           <span className={`d-status d-status-${dispatch.status.replace(' ', '')}`}>{dispatch.status}</span>
+          {dispatch.relay && <span className="d-tag d-tag-warn">RELAY</span>}
         </div>
         <div className="d-progress">
           <span style={{ width: `${(done / Math.max(dispatch.stops.length, 1)) * 100}%` }} />
@@ -338,7 +369,7 @@ function DispatchScreen({ dispatch, busy, onBack, showBack, onAction, onPhoto, o
                   <strong>{stopWord(s)}</strong> · {s.name || s.city}
                 </div>
                 <div className="d-muted">
-                  {[s.city, s.state].filter(Boolean).join(', ')} · {date(s.date)} {s.timeFrom}
+                  {[[s.city, s.state].filter(Boolean).join(', '), s.date && `${date(s.date)} ${s.timeFrom || ''}`.trim()].filter(Boolean).join(' · ')}
                 </div>
                 {s.departedAt && (
                   <div className="d-muted">
@@ -369,7 +400,7 @@ function DispatchScreen({ dispatch, busy, onBack, showBack, onAction, onPhoto, o
       {confirm && (
         <Sheet title={confirm.kind === 'arrive' ? 'Confirm arrival' : 'Confirm departure'} onClose={() => setConfirm(null)}>
           <p>
-            {confirm.kind === 'arrive' ? 'Arrived at ' : confirm.stop.type === 'pickup' ? 'Loaded and leaving ' : 'Delivered and leaving '}
+            {confirm.kind === 'arrive' ? 'Arrived at ' : (LEAVING_WORDS[confirm.stop.type] || LEAVING_WORDS.delivery)(confirm.stop)}
             <strong>{confirm.stop.name || confirm.stop.city}</strong>?
           </p>
           {confirm.kind === 'depart' && confirm.stop.type === 'pickup' && (
